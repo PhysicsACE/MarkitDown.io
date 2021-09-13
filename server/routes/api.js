@@ -2,6 +2,7 @@ import express from 'express';
 
 import { randomId } from '../utils.js';
 import { Workspace} from '../models.js';
+import { Share } from '../models.js';
 
 const router = express.Router();
 
@@ -52,5 +53,33 @@ router.put('/workspace/:id/save', async (req, res) => {
   console.log(obj.text)
   return res.json(obj);
 });
+
+router.post('/share', async (req, res) => {
+  const pid = req.body.id
+  const password = req.body.password
+  console.log(pid)
+  console.log(password)
+  if (!pid || password === '') {
+    return res.status(400).send('Missing `password` or `id` parameter');
+  }
+  const obj = new Share({id: pid, password: password})
+  console.log(obj.password)
+  await obj.save()
+  return res.json(obj)
+})
+
+router.get('/getshare/:id', async (req, res) => {
+  const password = req.params.id
+  console.log(typeof password)
+  if (typeof password !== 'string') {
+    return res.status(400).send('Missing `password` parameter');
+  }
+  const shared = await Share.findOne({password: password}, {id: 1})
+  if (!shared) {
+    return res.status(400).send('Incorrent Password')
+  } else {
+    return res.json(shared)
+  }
+})
 
 export default router;
